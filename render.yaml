@@ -1,0 +1,99 @@
+services:
+  - type: web
+    name: hardscape-api
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: STAGE
+        value: prod
+      - key: PORT
+        value: 4500
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hardscape-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: DuBxe2WMKIcNOMFsH0amjjS5rgV5QCoGD6G-Sw0KpipBr-28dkBHIXymthTwxrLA
+      - key: AUTH_JWT_ACCESS_TOKEN_SECRET_KEY
+        value: meJzpNQ-2QLs6cJ4ac5h_WVOPyjNCJ0AIteNVEUCPhb4OSHRXvRwjUMcmpHEF-U6
+      - key: AUTH_JWT_REFRESH_TOKEN_SECRET_KEY
+        value: DtDcOC_Ni6WQ-ILubQym5Lbpd3sEnTIJ1q8M88JeloRsSwRv-36iA6gKlPo8FxbW
+      - key: AUTH_JWT_ISSUER
+        value: hardscape-growth
+      - key: AUTH_JWT_ACCESS_TOKEN_EXPIRED
+        value: 15m
+      - key: AUTH_JWT_REFRESH_TOKEN_EXPIRED
+        value: 7d
+      - key: EXPIRES_IN
+        value: 7d
+      - key: HTTP_ENABLE
+        value: true
+      - key: HTTP_HOST
+        value: 0.0.0.0
+      - key: HTTP_PORT
+        value: 4500
+      - key: HTTP_VERSIONING_ENABLE
+        value: true
+      - key: HTTP_VERSION
+        value: 1
+      - key: THROTTLE_TTL
+        value: 60
+      - key: THROTTLE_LIMIT
+        value: 100
+      - key: DEBUGGER_HTTP_WRITE_INTO_FILE
+        value: false
+      - key: DEBUGGER_HTTP_WRITE_INTO_CONSOLE
+        value: false
+      - key: DEBUGGER_SYSTEM_WRITE_INTO_FILE
+        value: false
+      - key: DEBUGGER_SYSTEM_WRITE_INTO_CONSOLE
+        value: false
+      - key: JOB_ENABLE
+        value: false
+      - key: ANTHROPIC_API_KEY
+        value: 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
+      - key: BUSINESS_CITY
+        value: Austin
+      - key: TWILIO_ACCOUNT_SID
+        value: AC05b02ae1925f0393bf6134df79bbdc7d
+      - key: TWILIO_AUTH_TOKEN
+        value: 41c1fb288974a8615f85004cdd5387a1
+      - key: TWILIO_PHONE_NUMBER
+        value: "+12513194502"
+      - key: META_ACCESS_TOKEN
+        value: EAAVhc9lg7l0BQ0bWvY1TXgjdFXQdERlDmAZCBswT801dTgZBZCPSvXCgjtOkdzXZA6ZCoZCD99qAZAf5iODf7GLXEk92nlLabnT8ZBu9EYQDnG9oRso1IRokVURrpgtM51MGkoZA7qxLrX2ROIoLJxJljTabB8YJSeu05qFdNDzN3XLthvBUzZANGvgRSZAPu32MFOQsRi06J14TOVbsBUuehL2
+      - key: STRIPE_SECRET_KEY
+        value: sk_test_smoke_placeholder_invalid
+      - key: STRIPE_WEBHOOK_SECRET
+        value: whsec_dGVzdFNtb2tlV2ViaG9va1NlY3JldA==
+      - key: ADMIN_EMAIL
+        value: admin@hardscapegrowth.com
+      - key: ADMIN_PASSWORD
+        value: Admin1234!
+      - key: ADMIN_FIRST_NAME
+        value: Admin
+      - key: ADMIN_LAST_NAME
+        value: User
+      - key: FR_BASE_URL
+        value: https://hardscape-growth.vercel.app
+      - key: AWS_REGION
+        value: us-east-1
+      - key: AWS_ACCESS_KEY_ID
+        value: ""
+      - key: AWS_SECRET_ACCESS_KEY
+        value: ""
+      - key: AWS_S3_BUCKET_NAME
+        value: ""
+      - key: AWS_ENDPOINT
+        value: ""
+
+databases:
+  - name: hardscape-db
+    plan: free
+    databaseName: marketing_automations
+    user: postgres

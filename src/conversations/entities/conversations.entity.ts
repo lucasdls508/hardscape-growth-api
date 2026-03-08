@@ -1,0 +1,58 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { Lead } from "src/leads_info/entities/lead.entity";
+import { Messages } from "src/messages/entities/messages.entity";
+import { ConversationParticipant } from "src/participants/entities/participants.entity";
+import { User } from "src/user/entities/user.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
+@Index(["updated_at"])
+@Index(["lead_phone", "updated_at"])
+@Entity("conversations")
+export class Conversations {
+  @ApiProperty({ example: 1, description: "Unique ID for the conversation" })
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ApiProperty({ description: "Last Message" })
+  @Index()
+  @OneToOne(() => Messages, { onDelete: "SET NULL", nullable: true })
+  @JoinColumn({ name: "lastmsg_id" })
+  lastmsg: Messages | null;
+
+  @ApiProperty({ type: () => [Messages], description: "Messages in the conversation" })
+  @OneToMany(() => Messages, (message) => message.conversation, { cascade: true })
+  messages: Messages[];
+
+  @ApiProperty({ type: () => [User], description: "Users participating in the conversation" })
+  @OneToMany(() => ConversationParticipant, (p) => p.conversation)
+  participants: ConversationParticipant[];
+
+  @OneToOne(() => Lead, { onDelete: "SET NULL" })
+  @JoinColumn({ name: "lead_id" }) // owning side
+  lead: Lead;
+
+  @Index()
+  @Column({ type: "varchar", length: 20, nullable: true })
+  lead_phone: string | null; // denormalized for fast routing
+
+  @Index()
+  @Column({ type: "varchar", length: 40, nullable: true })
+  lead_email: string | null; // denormalized for fast routing
+
+  @ApiProperty({ description: "Conversation creation timestamp" })
+  @CreateDateColumn({ type: "timestamp with time zone" })
+  created_at: Date;
+
+  @ApiProperty({ description: "Conversation update timestamp" })
+  @UpdateDateColumn({ type: "timestamp with time zone" })
+  updated_at: Date;
+}

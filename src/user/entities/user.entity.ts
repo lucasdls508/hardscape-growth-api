@@ -1,0 +1,117 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { Exclude } from "class-transformer";
+import { AgencyProfile } from "src/agency_profiles/entities/agency_profiles.entity";
+import { Estimates } from "src/estimates/entities/estimates.entity";
+import { Lead } from "src/leads_info/entities/lead.entity";
+import { MetaBuisnessProfiles } from "src/page_session/entites/meta_buisness.entity";
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { UserRoles } from "../enums/role.enum";
+import { Verification } from "./verification.entity";
+
+export enum USER_STATUS {
+  VERIFIED = "verified",
+  NOT_VERIFIED = "not_verified",
+}
+@Entity({ name: "users" })
+export class User {
+  @PrimaryGeneratedColumn("uuid")
+  @ApiProperty()
+  id: string;
+
+  @Column({ length: 50 })
+  @ApiProperty()
+  first_name: string;
+  @Column({ length: 50 })
+  @ApiProperty()
+  last_name: string;
+  @ApiProperty()
+  @Index()
+  @Column({ unique: true })
+  email: string;
+  @Column({ type: "varchar", nullable: true })
+  @ApiProperty()
+  image: string;
+  @Column({ type: "varchar", nullable: true, default: USER_STATUS.NOT_VERIFIED })
+  @ApiProperty()
+  status?: USER_STATUS;
+  @Column({ nullable: true, select: false }) // Critical: Never select by default
+  @Exclude()
+  password: string;
+
+  @Column({ nullable: true, type: "varchar" })
+  fcm: string;
+  @Column({ nullable: true, type: "varchar" })
+  phone: string;
+  @Column({ nullable: true, select: false })
+  @Exclude()
+  current_refresh_token: string;
+
+  @Column({
+    type: "enum",
+    enum: UserRoles,
+    array: true,
+    default: [UserRoles.AGENCY_OWNER],
+  })
+  roles: UserRoles[];
+
+  @Column({ type: "boolean", default: false })
+  @ApiProperty({ default: false })
+  is_active: boolean;
+
+  //Relationship
+
+  @ManyToOne(() => MetaBuisnessProfiles, (profile) => profile.users, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "business_profile_id" })
+  buisness_profiles: MetaBuisnessProfiles;
+
+  //Relationship between user and leads
+
+  @OneToMany(() => AgencyProfile, (agency) => agency.agency_owner)
+  agency_profiles: AgencyProfile[];
+
+  @ManyToOne(() => AgencyProfile, (agency) => agency.members)
+  @JoinColumn({ name: "works_for_agency_id" })
+  works_for_agency: AgencyProfile;
+
+  @OneToMany(() => Lead, (lead) => lead.contructor_id)
+  leads: Lead[];
+
+  @OneToMany(() => Estimates, (estimate) => estimate.prepared_by_user)
+  estimates: Estimates[];
+
+  //Relation ship between user and verification
+  @OneToOne(() => Verification, (verification) => verification.user, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  verification: Verification;
+
+  //date properties-+
+
+  @CreateDateColumn()
+  @ApiProperty()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  @ApiProperty()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  @ApiProperty()
+  deletedAt: Date;
+}

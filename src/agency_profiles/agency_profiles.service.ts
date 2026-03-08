@@ -1,0 +1,178 @@
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { RedisService } from "src/redis/redis.service";
+import { User } from "src/user/entities/user.entity";
+import { UserService } from "src/user/user.service";
+import { Repository } from "typeorm";
+import { UpdateAgencyProfileDto } from "./dtos/update_agency.dto";
+import { AgencyProfile } from "./entities/agency_profiles.entity";
+
+@Injectable()
+export class AgencyProfilesService {
+  private readonly MEMBERS_TTL = 300; // 5 minutes
+  constructor(
+    @InjectRepository(AgencyProfile)
+    private readonly _agencyProfileRepo: Repository<AgencyProfile>,
+    private readonly _redisService: RedisService,
+    private readonly _userService: UserService
+  ) {}
+
+  async updateMyAgencyProfile(
+    user: User,
+    dto: UpdateAgencyProfileDto
+  ): Promise<{ ok: boolean; message: string; data: AgencyProfile }> {
+    const obj = this._agencyProfileRepo.create({ ...dto, agency_owner_id: user.id, agency_owner: user });
+
+    const data = await this._agencyProfileRepo.save(obj);
+    return {
+      ok: true,
+      message: "Agency Information updated successfully",
+      data,
+    };
+  }
+
+  async getAgencyByUserId(userId: string, relations: string[] = ["agency_owner"]): Promise<AgencyProfile> {
+    const client = this._redisService.getClient();
+
+    // 1. Generate a consistent cache key
+    const relationKey = relations.sort().join(",");
+    const cacheKey = `agency:owner:${userId}:${relationKey}`;
+
+    // 2. Check Redis Cache
+    const cachedData = await client.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+
+    // 3. Database Query
+    const agency = await this._agencyProfileRepo.findOne({
+      where: { agency_owner_id: userId },
+      relations: relations,
+    });
+
+    if (!agency) {
+      throw new NotFoundException("Agency profile not found");
+    }
+
+    // 4. Store in Redis (TTL 1 Hour)
+    await client.set(cacheKey, JSON.stringify(agency), { EX: 3600 });
+
+    return agency;
+  }
+
+  async updatePictures(user: User, dto) {
+    try {
+      // 1. Validate ID exists
+      if (!user?.id) {
+        throw new Error("User ID is missing");
+      }
+      delete dto.user_id;
+      // 2. Perform the update
+      const result = await this._agencyProfileRepo.update({ agency_owner_id: user.id }, dto);
+
+      // 3. Check if any rows were actually affected
+      if (result.affected === 0) {
+        console.warn("No rows were updated. Check if the ID exists in the correct table.");
+      }
+
+      return { ok: true, message: "Updated successfully" };
+    } catch (error) {
+      console.error("Update failed:", error);
+      throw error;
+    }
+  }
+
+  // async updateMyAgencyProfile(
+  //   user: User,
+  //   dto: UpdateAgencyProfileDto
+  // ): Promise<{ ok: boolean; message: string; data: AgencyProfile }> {
+  //   console.log("From Job");
+  //   const obj = this._agencyProfileRepo.create({ ...dto, agency_owner_id: user.id, agency_owner: user });
+
+  //   const data = await this._agencyProfileRepo.save(obj);
+  //   return {
+  //     ok: true,
+  //     message: "Agency Information updated successfully",
+  //     data,
+  //   };
+  // }
+
+  async getAgencyMembers(agencyOwnerId: string, page = 1, limit = 10) {
+    console.log(agencyOwnerId);
+    const cacheKey = `agency:members:${agencyOwnerId}:${page}:${limit}`;
+
+    const cached = await this._redisService.getCache(cacheKey);
+    if (cached) return cached;
+    const agency = await this._agencyProfileRepo.findOne({
+      where: { agency_owner_id: agencyOwnerId },
+      select: ["id"],
+    });
+
+    if (!agency) {
+      throw new NotFoundException("Agency profile not found");
+    }
+
+    const [members, total] = await this._userService.findUsersByAgency(agency.id, page, limit);
+
+    const result = {
+      data: members,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+
+    await this._redisService.setCacheWithTTL(cacheKey, result, 300);
+    return result;
+  }
+
+  async updateMyAgencyProfileInfo(
+    user: User,
+    dto: UpdateAgencyProfileDto
+  ): Promise<{ ok: boolean; message: string; data: AgencyProfile }> {
+    // 1️⃣ Find existing agency profile
+    const agency = await this._agencyProfileRepo.findOne({
+      where: { agency_owner_id: user.id },
+    });
+
+    if (!agency) {
+      throw new NotFoundException("Agency profile not found");
+    }
+    const allowedFields = [
+      "agency_name",
+      "description",
+      "website",
+      "contact_email",
+      "facebook_page_link",
+      "ein",
+      "nid_no",
+      "nid_front",
+      "nid_back",
+      "tax_no",
+      "tax_id_front",
+      "tax_id_back",
+      "contact_phone",
+      "logo",
+      "address",
+    ];
+
+    for (const key of allowedFields) {
+      if (dto[key] !== undefined) {
+        agency[key] = dto[key];
+      }
+    }
+    // 2️⃣ Only update allowed fields
+    Object.assign(agency, dto);
+
+    // 3️⃣ Save updated entity
+    const updated = await this._agencyProfileRepo.save(agency);
+
+    return {
+      ok: true,
+      message: "Agency Information updated successfully",
+      data: updated,
+    };
+  }
+}

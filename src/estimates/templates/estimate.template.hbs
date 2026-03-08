@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estimate #{{estimate.estimate_no}} — Signature Required</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a1a2e;--stone:#f5f3ef;--warm:#e8e2d9;--accent:#c8a96e;--accent-dark:#a8893e;--muted:#7a7570;--border:#ddd8ce;--success:#27ae60}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--stone);color:var(--ink);min-height:100vh;background-image:radial-gradient(ellipse at 20% 0%,rgba(200,169,110,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(200,169,110,.06) 0%,transparent 60%)}
+header{background:var(--ink);padding:24px 48px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;letter-spacing:.02em}
+.logo span{color:var(--accent)}
+.badge{background:var(--accent);color:var(--ink);font-size:.72rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:20px}
+.container{max-width:860px;margin:0 auto;padding:48px 24px 80px}
+.headline{text-align:center;margin-bottom:48px;animation:fadeUp .6s ease both}
+.eyebrow{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-dark);margin-bottom:12px;font-weight:500}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:700;line-height:1.15}
+.sub{color:var(--muted);margin-top:10px;font-size:.95rem}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:0 2px 24px rgba(26,26,46,.06);animation:fadeUp .6s ease both}
+.card:nth-child(2){animation-delay:.1s}.card:nth-child(3){animation-delay:.2s}.card:nth-child(4){animation-delay:.3s}
+.card-header{background:var(--ink);padding:18px 28px;display:flex;align-items:center;gap:10px}
+.icon{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.icon svg{width:15px;height:15px;stroke:var(--ink);fill:none;stroke-width:2}
+.card-header h2{font-family:'Playfair Display',serif;font-size:1rem;color:#fff;font-weight:600}
+.card-body{padding:28px}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px}
+.meta-item label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-dark);font-weight:500;display:block;margin-bottom:4px}
+.meta-item p{font-size:.95rem}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--warm);border-bottom:2px solid var(--border)}
+th{padding:12px 16px;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;font-weight:500}
+th:last-child,td:last-child{text-align:right}
+td{padding:14px 16px;font-size:.9rem;border-bottom:1px solid var(--warm)}
+.item-name{font-weight:500}
+.item-desc{font-size:.78rem;color:var(--muted);margin-top:2px}
+tbody tr:last-child td{border-bottom:none}
+.totals-row{display:flex;justify-content:flex-end;padding:20px 28px;background:var(--stone);border-top:1px solid var(--border);gap:40px}
+.total-item{text-align:right}
+.total-item label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;display:block;margin-bottom:4px}
+.total-item .value{font-size:1rem;font-weight:500}
+.total-item.grand .value{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700}
+.total-item.grand label{color:var(--accent-dark)}
+.terms-text{font-size:.88rem;line-height:1.7;color:var(--muted);font-style:italic}
+.sig-instruction{font-size:.88rem;color:var(--muted);margin-bottom:16px}
+.canvas-wrap{border:2px dashed var(--border);border-radius:10px;background:var(--stone);position:relative;overflow:hidden;transition:border-color .2s}
+.canvas-wrap.active{border-color:var(--accent)}
+.canvas-wrap canvas{display:block;cursor:crosshair;touch-action:none}
+.canvas-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;gap:8px;transition:opacity .2s}
+.canvas-placeholder svg{width:36px;height:36px;opacity:.25;stroke:var(--muted);fill:none;stroke-width:1.5}
+.canvas-placeholder p{font-size:.82rem;color:var(--muted)}
+.sig-actions{display:flex;gap:10px;margin-top:14px}
+.btn{padding:11px 22px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+.btn-primary{background:var(--ink);color:#fff;width:100%;justify-content:center;font-size:.95rem;padding:15px 28px;margin-top:8px}
+.btn-primary:hover{background:#2d2d4e;transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,26,46,.2)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.agree-check{display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;cursor:pointer}
+.agree-check input{width:18px;height:18px;accent-color:var(--ink);flex-shrink:0;margin-top:2px;cursor:pointer}
+.agree-check span{font-size:.88rem;color:var(--muted);line-height:1.5}
+.agree-check span strong{color:var(--ink)}
+.sig-line{border-top:1px solid var(--ink);margin-top:16px;padding-top:6px;font-size:.75rem;color:var(--muted)}
+.error-msg{color:#c0392b;font-size:.82rem;margin-top:8px;display:none}
+.already-signed{background:#eafaf1;border:1px solid #a9dfbf;border-radius:10px;padding:20px 24px;text-align:center;color:var(--success);font-size:.95rem;font-weight:500}
+.success-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,46,.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.success-overlay.show{display:flex;animation:fadeIn .3s ease}
+.success-box{background:#fff;border-radius:16px;padding:48px 40px;text-align:center;max-width:380px;width:90%;animation:scaleIn .35s cubic-bezier(.34,1.56,.64,1) both}
+.success-icon{width:64px;height:64px;background:var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.success-icon svg{width:32px;height:32px;stroke:#fff;fill:none;stroke-width:2.5}
+.success-box h2{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:10px}
+.success-box p{color:var(--muted);font-size:.9rem;line-height:1.6}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@media(max-width:600px){
+  header{padding:18px 20px}
+  .container{padding:32px 16px 60px}
+  .card-body{padding:20px}
+  .totals-row{flex-direction:column;gap:16px;align-items:flex-end}
+  th,td{padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Stone<span>&amp;</span>Craft</div>
+  <span class="badge">Estimate Review</span>
+</header>
+
+<div class="container">
+
+  <div class="headline">
+    <p class="eyebrow">Your Estimate Is Ready</p>
+    <h1>Review &amp; Sign<br>Estimate #{{estimate.estimate_no}}</h1>
+    <p class="sub">Prepared for <strong>{{lead.name}}</strong> &nbsp;·&nbsp; Please review all details before signing</p>
+  </div>
+
+  {{! ── Details card ──────────────────────────────────────────── }}
+  <div class="card">
+    <div class="card-header">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+      <h2>Estimate Details</h2>
+    </div>
+    <div class="card-body">
+      <div class="meta-grid">
+        <div class="meta-item"><label>Estimate No.</label><p>#{{estimate.estimate_no}}</p></div>
+        <div class="meta-item"><label>Prepared For</label><p>{{lead.name}}</p></div>
+        <div class="meta-item"><label>Client Email</label><p>{{lead.email}}</p></div>
+        <div class="meta-item"><label>Prepared By</label><p>{{preparedBy}}</p></div>
+        <div class="meta-item"><label>Date Issued</label><p>{{issuedDate}}</p></div>
+        <div class="meta-item">
+          <label>Status</label>
+          {{#if isSigned}}
+            <p style="color:var(--success);font-weight:500">Signed</p>
+          {{else}}
+            <p style="color:var(--accent-dark);font-weight:500">Awaiting Signature</p>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{! ── Line items card ───────────────────────────────────────── }}
+  <div class="card">
+    <div class="card-header">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h8M4 18h8"/></svg></div>
+      <h2>Line Items</h2>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Item</th><th>Qty</th>
+            <th>Unit Cost</th><th>Unit Price</th><th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each catalogItems}}
+            <tr>
+              <td style="color:var(--muted);font-size:.8rem">{{rowIndex}}</td>
+              <td>
+                <div class="item-name">{{name}}</div>
+                <div class="item-desc">{{desc}}</div>
+              </td>
+              <td>{{quantity}}</td>
+              <td>${{unitCost}}</td>
+              <td>${{unitPrice}}</td>
+              <td style="font-weight:500">${{rowTotal}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <div class="totals-row">
+      <div class="total-item">
+        <label>Total Cost</label>
+        <div class="value">${{totalCost}}</div>
+      </div>
+      <div class="total-item grand">
+        <label>Total Price</label>
+        <div class="value">${{totalPrice}}</div>
+      </div>
+    </div>
+  </div>
+
+  {{! ── Terms card ────────────────────────────────────────────── }}
+  <div class="card">
+    <div class="card-header">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <h2>Terms &amp; Conditions</h2>
+    </div>
+    <div class="card-body">
+      <p class="terms-text">{{estimate.terms_and_conditions}}</p>
+    </div>
+  </div>
+
+  {{! ── Signature card ────────────────────────────────────────── }}
+  <div class="card">
+    <div class="card-header">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></div>
+      <h2>Your Signature</h2>
+    </div>
+    <div class="card-body">
+
+      {{#if isSigned}}
+        {{! Already signed — read-only view }}
+        <div class="already-signed">
+          ✓ &nbsp;This estimate has already been signed.
+        </div>
+        <div style="margin-top:20px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--stone);padding:16px;text-align:center">
+          <img src="{{estimate.lead_signature}}" alt="Signature" style="max-height:120px;max-width:100%">
+        </div>
+
+      {{else}}
+        {{! Not yet signed — signature canvas }}
+        <p class="sig-instruction">Sign in the box below using your mouse or finger.</p>
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="sigCanvas" height="180"></canvas>
+          <div class="canvas-placeholder" id="placeholder">
+            <svg viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <p>Draw your signature here</p>
+          </div>
+        </div>
+        <div class="sig-actions">
+          <button class="btn btn-ghost" onclick="clearSig()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+            Clear
+          </button>
+        </div>
+        <div class="sig-line">{{lead.name}} &nbsp;·&nbsp; {{issuedDate}}</div>
+
+        <div style="margin-top:24px">
+          <label class="agree-check">
+            <input type="checkbox" id="agreeCheck" onchange="toggleBtn()">
+            <span>I, <strong>{{lead.name}}</strong>, agree to the terms and conditions and confirm this digital signature is legally binding.</span>
+          </label>
+          <p class="error-msg" id="errMsg">Please draw your signature before submitting.</p>
+          <button class="btn btn-primary" id="submitBtn" onclick="doSubmit()" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Sign &amp; Submit Estimate
+          </button>
+        </div>
+      {{/if}}
+
+    </div>
+  </div>
+
+</div>
+
+{{! ── Success overlay ────────────────────────────────────────── }}
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <h2>Estimate Signed!</h2>
+    <p>Thank you, {{lead.name}}. Your signature has been recorded and the contractor has been notified.</p>
+  </div>
+</div>
+
+{{#unless isSigned}}
+<script>
+(function () {
+  var ESTIMATE_ID = {{estimate.id}};
+  var API_BASE    = '{{apiBase}}';
+
+  // Wait for full paint before measuring canvas wrap width
+  window.addEventListener('load', function () {
+
+    var canvas  = document.getElementById('sigCanvas');
+    var ctx     = canvas.getContext('2d');
+    var wrap    = document.getElementById('canvasWrap');
+    var ph      = document.getElementById('placeholder');
+    var drawing = false, hasSig = false;
+
+    // ── Canvas style ────────────────────────────────────────────
+    function applyCtxStyle() {
+      ctx.strokeStyle = '#1a1a2e';
+      ctx.lineWidth   = 2.2;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+    }
+
+    // ── Resize: preserve drawing across resize ───────────────────
+    function resize() {
+      var snapshot = (hasSig && canvas.width > 0) ? canvas.toDataURL() : null;
+      canvas.width = wrap.clientWidth;
+      applyCtxStyle();
+      if (snapshot) {
+        var img = new Image();
+        img.onload = function () { ctx.drawImage(img, 0, 0); };
+        img.src = snapshot;
+      }
+    }
+
+    resize();
+
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resize, 120);
+    });
+
+    // ── Pointer helpers ──────────────────────────────────────────
+    function getPos(e) {
+      var r   = canvas.getBoundingClientRect();
+      var src = e.touches ? e.touches[0] : e;
+      return { x: src.clientX - r.left, y: src.clientY - r.top };
+    }
+
+    function onStart(e) {
+      drawing = true;
+      var p   = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ph.style.opacity = '0';
+      wrap.classList.add('active');
+    }
+
+    function onMove(e) {
+      if (!drawing) return;
+      var p = getPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      hasSig = true;
+    }
+
+    function onStop() { drawing = false; }
+
+    canvas.addEventListener('mousedown',  onStart);
+    canvas.addEventListener('mousemove',  onMove);
+    canvas.addEventListener('mouseup',    onStop);
+    canvas.addEventListener('mouseleave', onStop);
+    canvas.addEventListener('touchstart', function (e) { e.preventDefault(); onStart(e); }, { passive: false });
+    canvas.addEventListener('touchmove',  function (e) { e.preventDefault(); onMove(e);  }, { passive: false });
+    canvas.addEventListener('touchend',   onStop);
+
+    // ── Globals called by onclick attributes ─────────────────────
+    window.clearSig = function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasSig           = false;
+      ph.style.opacity = '1';
+      wrap.classList.remove('active');
+    };
+
+    window.toggleBtn = function () {
+      document.getElementById('submitBtn').disabled =
+        !document.getElementById('agreeCheck').checked;
+    };
+
+    // ── Submit ───────────────────────────────────────────────────
+    window.doSubmit = async function () {
+      var errEl = document.getElementById('errMsg');
+
+      if (!hasSig) {
+        errEl.textContent   = 'Please draw your signature before submitting.';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      var btn = document.getElementById('submitBtn');
+      btn.disabled    = true;
+      btn.textContent = 'Submitting\u2026';
+console.log('Submitting signature for estimate ID:', ESTIMATE_ID);
+      try {
+        var sigData = canvas.toDataURL('image/png');
+
+        var res = await fetch(API_BASE + '/estimates/' + ESTIMATE_ID + '/sign', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ lead_signature: sigData }),
+        });
+
+        if (!res.ok) {
+          var body = await res.json().catch(function () { return {}; });
+          throw new Error(body.message || ('Server error ' + res.status));
+        }
+
+        document.getElementById('successOverlay').classList.add('show');
+
+      } catch (err) {
+        console.error('Error submitting signature:', err);
+        btn.disabled        = false;
+        btn.innerHTML       = 'Sign &amp; Submit Estimate';
+        errEl.textContent   = err.message || 'Submission failed. Please try again.';
+        errEl.style.display = 'block';
+      }
+    };
+
+  }); // end window.load
+})();
+</script>
+{{/unless}}
+
+</body>
+</html>
