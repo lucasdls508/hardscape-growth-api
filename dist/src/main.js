@@ -26,6 +26,13 @@ process.on("unhandledRejection", (reason) => {
     console.error("[FATAL] Unhandled rejection:", reason);
     process.exit(1);
 });
+const _port = parseInt(process.env.PORT || "3000", 10);
+const _tempServer = require("http").createServer((_req, _res) => {
+    _res.writeHead(503);
+    _res.end("starting");
+}).listen(_port, "0.0.0.0", () => {
+    console.log(`[BOOT] Placeholder server bound on port ${_port} — NestJS initialising...`);
+});
 async function bootstrap() {
     console.log("[BOOT] Step 1: NestFactory.create (TypeORM sync+migrate runs here)");
     const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_fastify_1.FastifyAdapter(), {
@@ -142,6 +149,7 @@ async function bootstrap() {
     const port = configService.get("PORT") || process.env.PORT || 3000;
     const host = "0.0.0.0";
     console.log("[BOOT] Step 10: app.init() — port:", port);
+    _tempServer.close();
     await app.init();
     console.log("[BOOT] Step 11: app.init() complete, setting up content-type parser");
     const fastifyInstance = app.getHttpAdapter().getInstance();

@@ -29,6 +29,16 @@ process.on("unhandledRejection", (reason) => {
   process.exit(1);
 });
 
+// Immediately bind a placeholder HTTP server so Render's port scan succeeds
+// while NestJS + TypeORM initialise (which can take 60-120s on a fresh DB).
+const _port = parseInt(process.env.PORT || "3000", 10);
+const _tempServer = require("http").createServer((_req: any, _res: any) => {
+  _res.writeHead(503);
+  _res.end("starting");
+}).listen(_port, "0.0.0.0", () => {
+  console.log(`[BOOT] Placeholder server bound on port ${_port} — NestJS initialising...`);
+});
+
 async function bootstrap() {
   // TypeORM handles sync + migrations via PostgreSQLDatabaseModule (synchronize:true + migrationsRun:true)
   console.log("[BOOT] Step 1: NestFactory.create (TypeORM sync+migrate runs here)");
@@ -211,6 +221,7 @@ async function bootstrap() {
   const host = "0.0.0.0";
 
   console.log("[BOOT] Step 10: app.init() — port:", port);
+  _tempServer.close();
   // Initialize the app first so NestJS registers its default JSON content-type parser.
   // Then we replace it with a custom parser that returns the raw Buffer for the Stripe
   // webhook route (required for HMAC verification) and falls back to JSON.parse elsewhere.
