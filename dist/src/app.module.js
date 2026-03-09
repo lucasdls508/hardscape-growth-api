@@ -104,6 +104,8 @@ exports.AppModule = AppModule = __decorate([
                 prefix: "",
                 host: process.env.REDIS_IP || "localhost",
                 port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+                password: process.env.REDIS_PASSWORD || undefined,
+                tls: process.env.REDIS_IP?.includes(".upstash.io") ? {} : undefined,
                 ttl: 600,
                 max: 100,
             }),
@@ -111,6 +113,8 @@ exports.AppModule = AppModule = __decorate([
                 redis: {
                     host: process.env.REDIS_IP || "localhost",
                     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+                    password: process.env.REDIS_PASSWORD || undefined,
+                    tls: process.env.REDIS_IP?.includes(".upstash.io") ? {} : undefined,
                 },
             }),
             bull_1.BullModule.registerQueue({

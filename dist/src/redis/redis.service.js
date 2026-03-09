@@ -25,12 +25,19 @@ let RedisService = RedisService_1 = class RedisService {
         this._cacheManager = _cacheManager;
         this._logger = _logger;
         this._configService = _configService;
-        this.client = (0, redis_1.createClient)({
-            socket: {
-                host: this._configService.get("REDIS_HOST"),
-                port: this._configService.get("REDIS_PORT"),
-            },
-        });
+        const redisUrl = this._configService.get("REDIS_URL");
+        const redisIp = this._configService.get("REDIS_IP") || "localhost";
+        const isTls = redisIp.includes(".upstash.io");
+        this.client = redisUrl
+            ? (0, redis_1.createClient)({ url: redisUrl })
+            : (0, redis_1.createClient)({
+                socket: {
+                    host: redisIp,
+                    port: this._configService.get("REDIS_PORT") || 6379,
+                    tls: isTls,
+                },
+                password: this._configService.get("REDIS_PASSWORD"),
+            });
     }
     async onModuleInit() {
         if (!this.client.isOpen) {
