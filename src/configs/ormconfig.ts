@@ -12,6 +12,9 @@ export function createOrmConfig(): DataSourceOptions & TypeOrmModuleOptions {
 
   const databaseUrl = process.env.DATABASE_URL;
 
+  // Render internal DB URLs use .internal hostname (no SSL). External URLs need SSL.
+  const isExternalDb = databaseUrl && !databaseUrl.includes(".internal");
+
   const ormconfig: DataSourceOptions & TypeOrmModuleOptions = databaseUrl
     ? {
         type: "postgres",
@@ -25,7 +28,7 @@ export function createOrmConfig(): DataSourceOptions & TypeOrmModuleOptions {
         migrationsRun: true,
         maxQueryExecutionTime: 1000,
         logging: false,
-        ssl: { rejectUnauthorized: false },
+        ssl: isExternalDb ? { rejectUnauthorized: false } : false,
       }
     : {
         type: "postgres",

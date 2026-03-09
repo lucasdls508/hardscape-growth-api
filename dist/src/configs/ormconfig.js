@@ -11,6 +11,7 @@ const typeorm_1 = require("typeorm");
 function createOrmConfig() {
     const configService = new config_1.ConfigService();
     const databaseUrl = process.env.DATABASE_URL;
+    const isExternalDb = databaseUrl && !databaseUrl.includes(".internal");
     const ormconfig = databaseUrl
         ? {
             type: "postgres",
@@ -24,7 +25,7 @@ function createOrmConfig() {
             migrationsRun: true,
             maxQueryExecutionTime: 1000,
             logging: false,
-            ssl: { rejectUnauthorized: false },
+            ssl: isExternalDb ? { rejectUnauthorized: false } : false,
         }
         : {
             type: "postgres",
