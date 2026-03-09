@@ -1,0 +1,33 @@
+import { OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Cache } from "cache-manager";
+import { createClient } from "redis";
+import { Logger } from "winston";
+export type RedisClient = ReturnType<typeof createClient>;
+export declare class RedisService implements OnModuleInit {
+    private readonly _cacheManager;
+    private readonly _logger;
+    private readonly _configService;
+    private readonly client;
+    constructor(_cacheManager: Cache, _logger: Logger, _configService: ConfigService);
+    onModuleInit(): Promise<void>;
+    setCache<T>(key: string, value: T): Promise<void>;
+    set(key: string, value: any, ttl: number): Promise<void>;
+    del(key: string): Promise<void>;
+    get(key: string): Promise<any>;
+    setCacheWithTTL<T>(key: string, value: T, ttlSeconds: number): Promise<void>;
+    getCache<T = any>(key: string): Promise<T | null>;
+    delCache(key: string): Promise<void>;
+    exists(key: string): Promise<boolean>;
+    deleteByPattern(pattern: string): Promise<void>;
+    getClient(): RedisClient;
+    getHash(key: string): Promise<Record<string, string>>;
+    setHash(key: string, value: Record<string, string>): Promise<void>;
+    deleteHash(key: string): Promise<void>;
+    getList(key: string): Promise<string[]>;
+    pushToList(key: string, value: string): Promise<void>;
+    deleteList(key: string): Promise<void>;
+    getLoginAttempts(key: string): Promise<number>;
+    incrementLoginAttempts(key: string): Promise<number>;
+    resetLoginAttempts(key: string): Promise<void>;
+}

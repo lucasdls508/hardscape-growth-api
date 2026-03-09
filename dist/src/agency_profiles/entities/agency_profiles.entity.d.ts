@@ -1,0 +1,32 @@
+import { Lead } from "src/leads_info/entities/lead.entity";
+import { MetaBuisnessProfiles } from "src/page_session/entites/meta_buisness.entity";
+import { User } from "src/user/entities/user.entity";
+export declare class AgencyProfile {
+    id: string;
+    page_id: string;
+    agency_owner_id: string;
+    agency_name: string;
+    description: string;
+    website: string;
+    contact_email: string;
+    facebook_page_link: string;
+    ein: string;
+    nid_no: string;
+    nid_front: string;
+    nid_back: string;
+    tax_no: string;
+    tax_id_front: string;
+    tax_id_back: string;
+    contact_phone: string;
+    logo: string;
+    address: string;
+    status: string;
+    is_active: boolean;
+    buisness_profile: MetaBuisnessProfiles;
+    agency_owner: User;
+    leads: Lead[];
+    members: User[];
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date;
+}

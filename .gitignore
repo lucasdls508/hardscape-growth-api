@@ -1,5 +1,5 @@
 # compiled output
-/dist
+# /dist  -- included for Render deployment (pre-built)
 /docs
 /node_modules
 /public/uploads

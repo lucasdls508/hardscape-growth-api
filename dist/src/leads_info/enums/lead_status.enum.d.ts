@@ -1,0 +1,7 @@
+export declare enum LeadStatus {
+    NEW = "NEW",
+    CONTACTED = "CONTACTED",
+    IN_PROGRESS = "IN_PROGRESS",
+    CONVERTED = "CONVERTED",
+    CLOSED = "CLOSED"
+}

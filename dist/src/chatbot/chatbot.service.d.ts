@@ -1,0 +1,32 @@
+import { Logger } from "@nestjs/common";
+import { LangChainOpenAIService } from "src/lang-chain-open-ai/lang-chain-open-ai.service";
+import { MetaBuisnessProfiles } from "src/page_session/entites/meta_buisness.entity";
+import { ConversationMemoryService } from "./services/chat-conversation.service";
+import { ConversationStateService } from "./services/conversation-state.service";
+import { ChatResponse, ClientContext, FormField, Message } from "./types/chatbot.types";
+import { ChatbotUtilsService } from "./utils/chatbot.utils.service";
+export declare class ChatbotService {
+    private _langchain;
+    private _memoryService;
+    private _stateService;
+    private _chatbotUtils;
+    private readonly _logger;
+    clientInfo: any;
+    constructor(_langchain: LangChainOpenAIService, _memoryService: ConversationMemoryService, _stateService: ConversationStateService, _chatbotUtils: ChatbotUtilsService, _logger: Logger);
+    chatWithForm(clientId: string, userMessage: string, formData: FormField[], userInfo: MetaBuisnessProfiles): Promise<ChatResponse>;
+    chatRaw(clientId: string, userMessage: string, userInfo: MetaBuisnessProfiles): Promise<ChatResponse>;
+    private _processMessage;
+    private _formatResponse;
+    private _generateSuggestedQuestions;
+    private _generateGreetingQuestions;
+    private _generateInfoGatheringQuestions;
+    private _generateSchedulingQuestions;
+    private _generateClosingQuestions;
+    private _generateFieldQuestion;
+    private _generateFieldFollowup;
+    private _getNextAction;
+    getConversationHistory(clientId: string): Promise<Message[]>;
+    getClientContext(clientId: string): Promise<ClientContext | null>;
+    clearConversation(clientId: string): Promise<void>;
+    getSessionStats(clientId: string): Promise<any>;
+}
