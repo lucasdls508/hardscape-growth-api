@@ -4,8 +4,6 @@ import { config } from "dotenv";
 import { join } from "path";
 import { DataSource, DataSourceOptions } from "typeorm";
 
-import * as redisStore from "cache-manager-ioredis";
-// import redis * from 'ior'
 // FIXME: For AWS Secretmanager create a script to fetch the envs first to have migration capabilities
 config({ path: join(__dirname, "..", "..", `.env.${process.env.STAGE}`) });
 
@@ -32,17 +30,7 @@ export function createOrmConfig(): DataSourceOptions & TypeOrmModuleOptions {
     migrationsTableName: "migrations",
     migrationsRun: true,
     maxQueryExecutionTime: 1000,
-    logging: true,
-    logger: "file",
-    cache: {
-      type: redisStore,
-      options: {
-        socket: {
-          host: configService.get<string>("REDIS_IP"),
-          port: configService.get<string>("REDIS_PORT"),
-        },
-      },
-    },
+    logging: false,
     // ssl: false,
     // extra: {
     //   ssl: {
