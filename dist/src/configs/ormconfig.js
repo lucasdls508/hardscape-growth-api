@@ -24,12 +24,7 @@ function createOrmConfig() {
             migrationsRun: true,
             maxQueryExecutionTime: 1000,
             logging: false,
-            ssl: true,
-            extra: {
-                ssl: {
-                    rejectUnauthorized: false,
-                },
-            },
+            ssl: { rejectUnauthorized: false },
         }
         : {
             type: "postgres",
