@@ -10,34 +10,45 @@ config({ path: join(__dirname, "..", "..", `.env.${process.env.STAGE}`) });
 export function createOrmConfig(): DataSourceOptions & TypeOrmModuleOptions {
   const configService = new ConfigService();
 
-  const ormconfig: DataSourceOptions & TypeOrmModuleOptions = {
-    type: "postgres",
-    host: configService.get<string>("DB_HOST"),
-    port: +configService.get<string>("DB_PORT"),
-    username: configService.get<string>("DB_USER"),
-    password: configService.get<string>("DB_PASSWORD"),
-    database: configService.get<string>("DATABASE"),
-    entities: [join(__dirname, "..", "**", "**", "*.entity{.ts,.js}")],
-    // autoLoadEntities: true,
-    synchronize: true,
-    // dropSchema: true,
-    retryAttempts: 3,
-    connectTimeoutMS: 15000,
-    migrations: [join(__dirname, "..", "database", "migrations", "*{.ts,.js}")],
-    //   cli: {
-    //     migrationsDir: join(__dirname, "migrations"),
-    //   },
-    migrationsTableName: "migrations",
-    migrationsRun: true,
-    maxQueryExecutionTime: 1000,
-    logging: false,
-    // ssl: false,
-    // extra: {
-    //   ssl: {
-    //     rejectUnauthorized: false,
-    //   },
-    // },
-  };
+  const databaseUrl = process.env.DATABASE_URL;
+
+  const ormconfig: DataSourceOptions & TypeOrmModuleOptions = databaseUrl
+    ? {
+        type: "postgres",
+        url: databaseUrl,
+        entities: [join(__dirname, "..", "**", "**", "*.entity{.ts,.js}")],
+        synchronize: true,
+        retryAttempts: 3,
+        connectTimeoutMS: 15000,
+        migrations: [join(__dirname, "..", "database", "migrations", "*{.ts,.js}")],
+        migrationsTableName: "migrations",
+        migrationsRun: true,
+        maxQueryExecutionTime: 1000,
+        logging: false,
+        ssl: true,
+        extra: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
+      }
+    : {
+        type: "postgres",
+        host: configService.get<string>("DB_HOST"),
+        port: +configService.get<string>("DB_PORT"),
+        username: configService.get<string>("DB_USER"),
+        password: configService.get<string>("DB_PASSWORD"),
+        database: configService.get<string>("DATABASE"),
+        entities: [join(__dirname, "..", "**", "**", "*.entity{.ts,.js}")],
+        synchronize: true,
+        retryAttempts: 3,
+        connectTimeoutMS: 15000,
+        migrations: [join(__dirname, "..", "database", "migrations", "*{.ts,.js}")],
+        migrationsTableName: "migrations",
+        migrationsRun: true,
+        maxQueryExecutionTime: 1000,
+        logging: false,
+      };
 
   return ormconfig;
 }
