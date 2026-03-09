@@ -34,26 +34,18 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.argon2verify = exports.argon2hash = void 0;
-const argon2 = __importStar(require("argon2"));
-const crypto_1 = require("crypto");
+const bcrypt = __importStar(require("bcryptjs"));
+const SALT_ROUNDS = 12;
 const argon2hash = async (password) => {
     if (!password)
         return;
-    const hash = await argon2.hash(password, {
-        type: argon2.argon2id,
-        hashLength: 32,
-        parallelism: 4,
-        memoryCost: 65536,
-        timeCost: 10,
-        salt: (0, crypto_1.randomBytes)(16),
-    });
-    return hash;
+    return bcrypt.hash(password, SALT_ROUNDS);
 };
 exports.argon2hash = argon2hash;
 const argon2verify = async (hash, password) => {
     if (!hash || !password)
-        return;
-    return await argon2.verify(hash, password);
+        return false;
+    return bcrypt.compare(password, hash);
 };
 exports.argon2verify = argon2verify;
 //# sourceMappingURL=argon2.js.map
