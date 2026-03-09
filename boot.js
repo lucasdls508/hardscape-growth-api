@@ -31,11 +31,29 @@ const tempServer = http
 // Expose so main.ts can close it before app.listen()
 global.__bootTempServer = tempServer;
 
+function tgAlert(msg) {
+  try {
+    const https = require("https");
+    const token = "8623014387:AAHb7FCwGoVP6H5VlL5IinyhVs28R16ZjqE";
+    const chatId = "6224842158";
+    const body = JSON.stringify({ chat_id: chatId, text: "🔴 Render crash: " + msg });
+    const req = https.request(
+      { hostname: "api.telegram.org", path: "/bot" + token + "/sendMessage", method: "POST",
+        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
+      function () {}
+    );
+    req.on("error", function () {});
+    req.write(body);
+    req.end();
+  } catch (e2) {}
+}
+
 // Load the compiled NestJS app — crash is captured here if any require() fails
 try {
   require("./dist/src/main");
 } catch (err) {
-  console.error("[FATAL] Module load error in dist/src/main:", err.message);
-  console.error(err.stack);
-  process.exit(1);
+  const msg = "[FATAL] Module load error in dist/src/main: " + err.message + "\n" + (err.stack || "");
+  console.error(msg);
+  tgAlert(err.message.slice(0, 300));
+  setTimeout(function () { process.exit(1); }, 3000); // give Telegram request time to send
 }
