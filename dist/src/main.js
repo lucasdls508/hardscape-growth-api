@@ -27,7 +27,7 @@ process.on("unhandledRejection", (reason) => {
     process.exit(1);
 });
 const _port = parseInt(process.env.PORT || "3000", 10);
-const _tempServer = require("http").createServer((_req, _res) => {
+const _tempServer = global.__bootTempServer ?? require("http").createServer((_req, _res) => {
     _res.writeHead(503);
     _res.end("starting");
 }).listen(_port, "0.0.0.0", () => {

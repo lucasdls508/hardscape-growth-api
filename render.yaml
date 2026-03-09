@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install && npm run build
-    startCommand: npm run start:prod
+    startCommand: STAGE=prod node boot.js
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV

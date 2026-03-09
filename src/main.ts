@@ -29,10 +29,10 @@ process.on("unhandledRejection", (reason) => {
   process.exit(1);
 });
 
-// Immediately bind a placeholder HTTP server so Render's port scan succeeds
-// while NestJS + TypeORM initialise (which can take 60-120s on a fresh DB).
+// Use the placeholder server created by boot.js (if present) — avoids port conflict.
+// Falls back to creating its own placeholder when run directly (local dev).
 const _port = parseInt(process.env.PORT || "3000", 10);
-const _tempServer = require("http").createServer((_req: any, _res: any) => {
+const _tempServer: any = (global as any).__bootTempServer ?? require("http").createServer((_req: any, _res: any) => {
   _res.writeHead(503);
   _res.end("starting");
 }).listen(_port, "0.0.0.0", () => {
