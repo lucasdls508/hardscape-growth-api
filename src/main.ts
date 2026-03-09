@@ -18,8 +18,6 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import bodyParser from "body-parser";
 import { join } from "path";
 import { createClient } from "redis";
-import { createDataSource } from "./configs/ormconfig";
-import { runMigrations } from "./migration-runner";
 import { SeederService } from "./seeder/seeder.service";
 
 process.on("uncaughtException", (err) => {
@@ -32,13 +30,8 @@ process.on("unhandledRejection", (reason) => {
 });
 
 async function bootstrap() {
-  console.log("[BOOT] Step 1: creating DataSource");
-  // Create the data source after secrets are loaded
-  const dataSource = createDataSource();
-  // Run Auto Migrations
-  console.log("[BOOT] Step 2: running migrations");
-  await runMigrations(dataSource, false); // Set to true to exit on migration failure
-  console.log("[BOOT] Step 3: NestFactory.create");
+  // TypeORM handles sync + migrations via PostgreSQLDatabaseModule (synchronize:true + migrationsRun:true)
+  console.log("[BOOT] Step 1: NestFactory.create (TypeORM sync+migrate runs here)");
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
     bodyParser: true,
     cors: true,

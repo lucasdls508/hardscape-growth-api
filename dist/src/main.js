@@ -17,8 +17,6 @@ const platform_socket_io_1 = require("@nestjs/platform-socket.io");
 const redis_adapter_1 = require("@socket.io/redis-adapter");
 const path_1 = require("path");
 const redis_1 = require("redis");
-const ormconfig_1 = require("./configs/ormconfig");
-const migration_runner_1 = require("./migration-runner");
 const seeder_service_1 = require("./seeder/seeder.service");
 process.on("uncaughtException", (err) => {
     console.error("[FATAL] Uncaught exception:", err.message, err.stack);
@@ -29,11 +27,7 @@ process.on("unhandledRejection", (reason) => {
     process.exit(1);
 });
 async function bootstrap() {
-    console.log("[BOOT] Step 1: creating DataSource");
-    const dataSource = (0, ormconfig_1.createDataSource)();
-    console.log("[BOOT] Step 2: running migrations");
-    await (0, migration_runner_1.runMigrations)(dataSource, false);
-    console.log("[BOOT] Step 3: NestFactory.create");
+    console.log("[BOOT] Step 1: NestFactory.create (TypeORM sync+migrate runs here)");
     const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_fastify_1.FastifyAdapter(), {
         bodyParser: true,
         cors: true,

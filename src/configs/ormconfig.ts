@@ -21,8 +21,8 @@ export function createOrmConfig(): DataSourceOptions & TypeOrmModuleOptions {
     // autoLoadEntities: true,
     synchronize: true,
     // dropSchema: true,
-    retryAttempts: 1,
-    connectTimeoutMS: 10000,
+    retryAttempts: 3,
+    connectTimeoutMS: 15000,
     migrations: [join(__dirname, "..", "database", "migrations", "*{.ts,.js}")],
     //   cli: {
     //     migrationsDir: join(__dirname, "migrations"),
