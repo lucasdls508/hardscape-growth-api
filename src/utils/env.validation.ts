@@ -43,7 +43,7 @@ export const envSchema = Joi.object({
   AUTH_JWT_ACCESS_TOKEN_SECRET_KEY: Joi.string().min(5).required(),
   AUTH_JWT_ACCESS_TOKEN_EXPIRED: Joi.string().default("15m").required(),
 
-  AUTH_JWT_REFRESH_TOKEN_SECRET_KEY: Joi.string().alphanum().min(5).max(50).required(),
+  AUTH_JWT_REFRESH_TOKEN_SECRET_KEY: Joi.string().min(5).required(),
   AUTH_JWT_REFRESH_TOKEN_EXPIRED: Joi.string().default("7d").required(),
 
   // AUTH_JWT_PAYLOAD_ENCRYPT: Joi.boolean().default(false).required(),
