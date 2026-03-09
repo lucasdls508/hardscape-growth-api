@@ -197,5 +197,8 @@
   "bugs": {
     "url": "https://github.com/iftekhar2979/marketing_automations/issues"
   },
-  "homepage": "https://github.com/iftekhar2979/marketing_automations#readme"
+  "homepage": "https://github.com/iftekhar2979/marketing_automations#readme",
+  "engines": {
+    "node": "20.x"
+  }
 }
