@@ -36,21 +36,26 @@ async function bootstrap() {
   // console.log(infos);
   const seed = app.get(SeederService);
   await seed.seedLeeds().catch((e) => console.warn("Lead seed skipped:", e.message));
-  // --- Add Redis Adapter ---
-  const pubClient = createClient({ url: "redis://localhost:6379" });
-  const subClient = pubClient.duplicate();
-
-  await Promise.all([pubClient.connect(), subClient.connect()]);
-
-  app.useWebSocketAdapter(
-    new (class extends IoAdapter {
-      createIOServer(port: number, options?: any) {
-        const server = super.createIOServer(port, options);
-        server.adapter(createAdapter(pubClient, subClient));
-        return server;
-      }
-    })(app)
-  );
+  // --- Add Redis Adapter (optional — gracefully skipped if Redis is unavailable) ---
+  const redisUrl = process.env.REDIS_URL || `redis://${process.env.REDIS_IP || "localhost"}:${process.env.REDIS_PORT || 6379}`;
+  let pubClient: any, subClient: any;
+  try {
+    pubClient = createClient({ url: redisUrl });
+    subClient = pubClient.duplicate();
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    app.useWebSocketAdapter(
+      new (class extends IoAdapter {
+        createIOServer(port: number, options?: any) {
+          const server = super.createIOServer(port, options);
+          server.adapter(createAdapter(pubClient, subClient));
+          return server;
+        }
+      })(app)
+    );
+    console.log("Redis adapter connected:", redisUrl);
+  } catch (redisErr) {
+    console.warn("Redis unavailable, falling back to in-memory WebSocket adapter:", redisErr.message);
+  }
   const seederService = app.get(SeederService);
   await seederService.seedAdminUser();
   await seederService.seedSettings();
@@ -192,7 +197,8 @@ async function bootstrap() {
   // Session Management
   // expressSession(app);
 
-  const port = configService.get<string>("PORT") || 3000;
+  const port = configService.get<string>("PORT") || process.env.PORT || 3000;
+  const host = "0.0.0.0";
 
   // Initialize the app first so NestJS registers its default JSON content-type parser.
   // Then we replace it with a custom parser that returns the raw Buffer for the Stripe
@@ -213,8 +219,8 @@ async function bootstrap() {
     }
   });
 
-  await app.listen(port, () => {
-    console.log("Server started on port: " + port);
+  await app.listen(port, host, () => {
+    console.log(`Server started on ${host}:${port}`);
   });
 }
 bootstrap();
