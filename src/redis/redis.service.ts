@@ -19,13 +19,19 @@ export class RedisService implements OnModuleInit {
     @InjectLogger() private readonly _logger: Logger,
     private readonly _configService: ConfigService
   ) {
-    this.client = createClient({
-      socket: {
-        host: this._configService.get<string>("REDIS_HOST"),
-        port: this._configService.get<number>("REDIS_PORT"),
-      },
-      // password: this._configService.get<string>("REDIS_PASSWORD"),
-    });
+    const redisUrl = this._configService.get<string>("REDIS_URL");
+    const redisIp = this._configService.get<string>("REDIS_IP") || "localhost";
+    const isTls = redisIp.includes(".upstash.io");
+    this.client = redisUrl
+      ? createClient({ url: redisUrl })
+      : createClient({
+          socket: {
+            host: redisIp,
+            port: this._configService.get<number>("REDIS_PORT") || 6379,
+            tls: isTls,
+          },
+          password: this._configService.get<string>("REDIS_PASSWORD"),
+        });
   }
 
   async onModuleInit() {

@@ -26,7 +26,7 @@ export const envSchema = Joi.object({
   FR_BASE_URL: Joi.string().required(),
 
   HTTP_ENABLE: Joi.boolean().default(true).required(),
-  HTTP_HOST: [Joi.string().ip({ version: "ipv4" }).required(), Joi.valid("localhost").required()],
+  HTTP_HOST: Joi.string().default("0.0.0.0").optional(),
   HTTP_PORT: Joi.number().default(3000).required(),
   HTTP_VERSIONING_ENABLE: Joi.boolean().default(true).required(),
   HTTP_VERSION: Joi.number().required(),
@@ -40,7 +40,7 @@ export const envSchema = Joi.object({
 
   AUTH_JWT_ISSUER: Joi.string().required(),
 
-  AUTH_JWT_ACCESS_TOKEN_SECRET_KEY: Joi.string().alphanum().min(5).max(50).required(),
+  AUTH_JWT_ACCESS_TOKEN_SECRET_KEY: Joi.string().min(5).required(),
   AUTH_JWT_ACCESS_TOKEN_EXPIRED: Joi.string().default("15m").required(),
 
   AUTH_JWT_REFRESH_TOKEN_SECRET_KEY: Joi.string().alphanum().min(5).max(50).required(),
@@ -51,8 +51,10 @@ export const envSchema = Joi.object({
   // AUTH_JWT_PAYLOAD_ACCESS_TOKEN_ENCRYPT_IV: Joi.string().allow(null, "").min(16).max(50).optional(),
   // AUTH_JWT_PAYLOAD_REFRESH_TOKEN_ENCRYPT_KEY: Joi.string().allow(null, "").min(20).max(50).optional(),
   // AUTH_JWT_PAYLOAD_REFRESH_TOKEN_ENCRYPT_IV: Joi.string().allow(null, "").min(16).max(50).optional(),
-  REDIS_IP: [Joi.string().ip({ version: "ipv4" }).required(), Joi.valid("localhost").required()],
-  REDIS_PORT: Joi.number().default(3000).required(),
+  REDIS_IP: Joi.string().allow(null, "").optional(),
+  REDIS_PORT: Joi.number().default(6379).optional(),
+  REDIS_PASSWORD: Joi.string().allow(null, "").optional(),
+  REDIS_URL: Joi.string().allow(null, "").optional(),
 
   STRIPE_SECRET_KEY: Joi.string().allow(null, "").optional(),
   STRIPE_WEBHOOK_SECRET: Joi.string().allow(null, "").optional(),

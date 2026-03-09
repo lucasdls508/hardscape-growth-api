@@ -68,16 +68,20 @@ import { WebhookModule } from "./webhook/webhook.module";
       isGlobal: true,
       store: redisStore,
       prefix: "",
-      host: process.env.REDIS_IP || "localhost", // Use environment variable or default to localhost
-      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379, // Use environment variable or default to 6379
+      host: process.env.REDIS_IP || "localhost",
+      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+      password: process.env.REDIS_PASSWORD || undefined,
+      tls: process.env.REDIS_IP?.includes(".upstash.io") ? {} : undefined,
       ttl: 600,
       max: 100,
     }),
 
     BullModule.forRoot({
       redis: {
-        host: process.env.REDIS_IP || "localhost", // Use environment variable for Redis connection
-        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379, // Default Redis port
+        host: process.env.REDIS_IP || "localhost",
+        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        tls: process.env.REDIS_IP?.includes(".upstash.io") ? {} : undefined,
       },
     }),
     BullModule.registerQueue({
