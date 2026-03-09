@@ -98,25 +98,35 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            cache_manager_1.CacheModule.register({
-                isGlobal: true,
-                store: redisStore,
-                prefix: "",
-                host: process.env.REDIS_IP || "localhost",
-                port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
-                password: process.env.REDIS_PASSWORD || undefined,
-                tls: process.env.REDIS_IP?.includes(".upstash.io") ? {} : undefined,
-                ttl: 600,
-                max: 100,
-            }),
-            bull_1.BullModule.forRoot({
-                redis: {
+            cache_manager_1.CacheModule.register(process.env.REDIS_URL
+                ? {
+                    isGlobal: true,
+                    store: redisStore,
+                    url: process.env.REDIS_URL,
+                    ttl: 600,
+                    max: 100,
+                }
+                : {
+                    isGlobal: true,
+                    store: redisStore,
+                    prefix: "",
                     host: process.env.REDIS_IP || "localhost",
                     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
                     password: process.env.REDIS_PASSWORD || undefined,
                     tls: process.env.REDIS_IP?.includes(".upstash.io") ? {} : undefined,
-                },
-            }),
+                    ttl: 600,
+                    max: 100,
+                }),
+            bull_1.BullModule.forRoot(process.env.REDIS_URL
+                ? { redis: process.env.REDIS_URL }
+                : {
+                    redis: {
+                        host: process.env.REDIS_IP || "localhost",
+                        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+                        password: process.env.REDIS_PASSWORD || undefined,
+                        tls: process.env.REDIS_IP?.includes(".upstash.io") ? {} : undefined,
+                    },
+                }),
             bull_1.BullModule.registerQueue({
                 name: "myQueue",
             }),
