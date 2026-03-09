@@ -20,17 +20,31 @@ const redis_1 = require("redis");
 const ormconfig_1 = require("./configs/ormconfig");
 const migration_runner_1 = require("./migration-runner");
 const seeder_service_1 = require("./seeder/seeder.service");
+process.on("uncaughtException", (err) => {
+    console.error("[FATAL] Uncaught exception:", err.message, err.stack);
+    process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+    console.error("[FATAL] Unhandled rejection:", reason);
+    process.exit(1);
+});
 async function bootstrap() {
+    console.log("[BOOT] Step 1: creating DataSource");
     const dataSource = (0, ormconfig_1.createDataSource)();
+    console.log("[BOOT] Step 2: running migrations");
     await (0, migration_runner_1.runMigrations)(dataSource, false);
+    console.log("[BOOT] Step 3: NestFactory.create");
     const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_fastify_1.FastifyAdapter(), {
         bodyParser: true,
         cors: true,
         logger: ["error", "fatal", "log", "verbose", "warn", "debug"],
     });
+    console.log("[BOOT] Step 4: app created, getting config");
     const configService = app.get(config_1.ConfigService);
+    console.log("[BOOT] Step 5: seeding leads");
     const seed = app.get(seeder_service_1.SeederService);
     await seed.seedLeeds().catch((e) => console.warn("Lead seed skipped:", e.message));
+    console.log("[BOOT] Step 6: Redis adapter setup");
     const redisUrl = process.env.REDIS_URL || `redis://${process.env.REDIS_IP || "localhost"}:${process.env.REDIS_PORT || 6379}`;
     let pubClient, subClient;
     try {
@@ -49,14 +63,16 @@ async function bootstrap() {
     catch (redisErr) {
         console.warn("Redis unavailable, falling back to in-memory WebSocket adapter:", redisErr.message);
     }
+    console.log("[BOOT] Step 7: seeding admin + settings");
     const seederService = app.get(seeder_service_1.SeederService);
-    await seederService.seedAdminUser();
-    await seederService.seedSettings();
+    await seederService.seedAdminUser().catch((e) => console.warn("Admin seed skipped:", e.message));
+    await seederService.seedSettings().catch((e) => console.warn("Settings seed skipped:", e.message));
     app.setGlobalPrefix("/api");
     app.enableVersioning({
         defaultVersion: "1",
         type: common_1.VersioningType.URI,
     });
+    console.log("[BOOT] Step 8: setViewEngine");
     app.setViewEngine({
         engine: {
             handlebars: require("handlebars"),
@@ -71,6 +87,7 @@ async function bootstrap() {
         optionsSuccessStatus: 204,
         maxAge: 86400,
     };
+    console.log("[BOOT] Step 9: useStaticAssets");
     app.useStaticAssets({
         root: (0, path_1.join)(__dirname, "..", "..", "public"),
         prefix: "/public/",
@@ -130,7 +147,9 @@ async function bootstrap() {
     }
     const port = configService.get("PORT") || process.env.PORT || 3000;
     const host = "0.0.0.0";
+    console.log("[BOOT] Step 10: app.init() — port:", port);
     await app.init();
+    console.log("[BOOT] Step 11: app.init() complete, setting up content-type parser");
     const fastifyInstance = app.getHttpAdapter().getInstance();
     fastifyInstance.removeContentTypeParser("application/json");
     fastifyInstance.addContentTypeParser("application/json", { parseAs: "buffer" }, function (req, body, done) {

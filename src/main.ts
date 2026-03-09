@@ -22,20 +22,34 @@ import { createDataSource } from "./configs/ormconfig";
 import { runMigrations } from "./migration-runner";
 import { SeederService } from "./seeder/seeder.service";
 
+process.on("uncaughtException", (err) => {
+  console.error("[FATAL] Uncaught exception:", err.message, err.stack);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("[FATAL] Unhandled rejection:", reason);
+  process.exit(1);
+});
+
 async function bootstrap() {
+  console.log("[BOOT] Step 1: creating DataSource");
   // Create the data source after secrets are loaded
   const dataSource = createDataSource();
   // Run Auto Migrations
+  console.log("[BOOT] Step 2: running migrations");
   await runMigrations(dataSource, false); // Set to true to exit on migration failure
+  console.log("[BOOT] Step 3: NestFactory.create");
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
     bodyParser: true,
     cors: true,
     logger: ["error", "fatal", "log", "verbose", "warn", "debug"],
   });
+  console.log("[BOOT] Step 4: app created, getting config");
   const configService = app.get<ConfigService>(ConfigService);
-  // console.log(infos);
+  console.log("[BOOT] Step 5: seeding leads");
   const seed = app.get(SeederService);
   await seed.seedLeeds().catch((e) => console.warn("Lead seed skipped:", e.message));
+  console.log("[BOOT] Step 6: Redis adapter setup");
   // --- Add Redis Adapter (optional — gracefully skipped if Redis is unavailable) ---
   const redisUrl = process.env.REDIS_URL || `redis://${process.env.REDIS_IP || "localhost"}:${process.env.REDIS_PORT || 6379}`;
   let pubClient: any, subClient: any;
@@ -56,9 +70,10 @@ async function bootstrap() {
   } catch (redisErr) {
     console.warn("Redis unavailable, falling back to in-memory WebSocket adapter:", redisErr.message);
   }
+  console.log("[BOOT] Step 7: seeding admin + settings");
   const seederService = app.get(SeederService);
-  await seederService.seedAdminUser();
-  await seederService.seedSettings();
+  await seederService.seedAdminUser().catch((e) => console.warn("Admin seed skipped:", e.message));
+  await seederService.seedSettings().catch((e) => console.warn("Settings seed skipped:", e.message));
 
   // await seederService.seedFakeUsers();
   app.setGlobalPrefix("/api");
@@ -68,6 +83,7 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
+  console.log("[BOOT] Step 8: setViewEngine");
   app.setViewEngine({
     engine: {
       handlebars: require("handlebars"), // Import the engine here
@@ -85,6 +101,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     maxAge: 86400,
   };
+  console.log("[BOOT] Step 9: useStaticAssets");
   app.useStaticAssets({
     root: join(__dirname, "..", "..", "public"),
     prefix: "/public/", // Optional: adds a prefix to the URL
@@ -200,10 +217,12 @@ async function bootstrap() {
   const port = configService.get<string>("PORT") || process.env.PORT || 3000;
   const host = "0.0.0.0";
 
+  console.log("[BOOT] Step 10: app.init() — port:", port);
   // Initialize the app first so NestJS registers its default JSON content-type parser.
   // Then we replace it with a custom parser that returns the raw Buffer for the Stripe
   // webhook route (required for HMAC verification) and falls back to JSON.parse elsewhere.
   await app.init();
+  console.log("[BOOT] Step 11: app.init() complete, setting up content-type parser");
   const fastifyInstance = app.getHttpAdapter().getInstance();
   fastifyInstance.removeContentTypeParser("application/json");
   fastifyInstance.addContentTypeParser("application/json", { parseAs: "buffer" }, function (req: any, body: Buffer, done: any) {
