@@ -3,7 +3,7 @@ services:
     name: hardscape-api
     runtime: node
     plan: free
-    buildCommand: npm install --production
+    buildCommand: npm ci --omit=dev
     startCommand: node boot.js
     healthCheckPath: /api/v1/health
     envVars:
