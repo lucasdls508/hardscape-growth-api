@@ -10,8 +10,10 @@ export const winstonLoggerConfig: WinstonModuleOptions = {
     winston.format.splat()
   ),
   transports:
-    // Simple for Non-Prod Environments
-    process.env.NODE_ENV !== "PROD"
+    // Serverless environments (Vercel) have read-only filesystems — use Console only
+    process.env.VERCEL
+      ? [new winston.transports.Console()]
+      : process.env.NODE_ENV !== "PROD"
       ? [
           new winston.transports.File({
             filename: `logs/${new Date().toISOString().split("T")[0].replace(/-/g, "/")}/application.log`,
