@@ -1,4 +1,3 @@
-import { faker } from "@faker-js/faker";
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Lead } from "src/leads_info/entities/lead.entity";
@@ -14,30 +13,47 @@ const FORM_VERSIONS = ["form_contact_v1", "form_contact_v2", "form_contact_v3"];
 const projectscope = ["Landscape design", "Paver Consulting", " Wild Jungle Landscape design"];
 const LEAD_STATUSES = Object.values(LeadStatus);
 
+const FIRST_NAMES = ["James", "Maria", "Carlos", "Sarah", "Michael", "Emily", "David", "Jennifer", "Robert", "Lisa"];
+const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Moore"];
+const STREETS = ["Oak Ave", "Maple Dr", "Cedar Ln", "Pine St", "Elm Rd", "Birch Blvd", "Willow Way", "Spruce Ct"];
+const CITIES = ["Austin", "Dallas", "Houston", "San Antonio", "Fort Worth"];
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randStr(len: number): string {
+  return Math.random().toString(36).substring(2, 2 + len).padEnd(len, "0");
+}
+
 function generateFakeLead(): Partial<Lead> {
-  const source = faker.helpers.arrayElement(AD_SOURCES);
-  const status = faker.helpers.arrayElement(LEAD_STATUSES);
+  const source = pick(AD_SOURCES);
+  const status = pick(LEAD_STATUSES);
+  const firstName = pick(FIRST_NAMES);
+  const lastName = pick(LAST_NAMES);
+  const name = `${firstName} ${lastName}`;
+  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 999)}@example.com`;
 
   return {
-    meta_lead_id: `meta_${faker.string.alphanumeric(10)}`,
+    meta_lead_id: `meta_${randStr(10)}`,
     agency_id: AGENCY_USER_ID,
     status,
-    name: faker.person.fullName(),
-    email: faker.internet.email().toLowerCase(),
-    phone: faker.phone.number(),
-    address: faker.location.streetAddress({ useFullAddress: true }),
-    form_id: faker.helpers.arrayElement(FORM_VERSIONS),
+    name,
+    email,
+    phone: `+1512${Math.floor(Math.random() * 9000000) + 1000000}`,
+    address: `${Math.floor(Math.random() * 9000) + 100} ${pick(STREETS)}, ${pick(CITIES)}, TX`,
+    form_id: pick(FORM_VERSIONS),
     form_info: {
       source,
-      campaign: faker.commerce.productName() + " Campaign",
-      ad_id: `ad_${faker.string.alphanumeric(8)}`,
-      name: faker.person.fullName(),
-      email: faker.internet.email().toLowerCase(),
-      phone: faker.phone.number(),
-      projectscope: faker.helpers.arrayElement([projectscope]),
+      campaign: `Hardscape ${pick(["Summer", "Spring", "Fall"])} Campaign`,
+      ad_id: `ad_${randStr(8)}`,
+      name,
+      email,
+      phone: `+1512${Math.floor(Math.random() * 9000000) + 1000000}`,
+      projectscope: pick(projectscope),
     },
-    start_time_pref: faker.helpers.arrayElement(TIME_PREFERENCES),
-    is_used: faker.datatype.boolean(),
+    start_time_pref: pick(TIME_PREFERENCES),
+    is_used: Math.random() > 0.5,
   };
 }
 

@@ -14,7 +14,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var LeadSeedService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadSeedService = void 0;
-const faker_1 = require("@faker-js/faker");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const lead_entity_1 = require("../entities/lead.entity");
@@ -27,29 +26,43 @@ const TIME_PREFERENCES = ["morning", "afternoon", "evening", "flexible"];
 const FORM_VERSIONS = ["form_contact_v1", "form_contact_v2", "form_contact_v3"];
 const projectscope = ["Landscape design", "Paver Consulting", " Wild Jungle Landscape design"];
 const LEAD_STATUSES = Object.values(lead_status_enum_1.LeadStatus);
+const FIRST_NAMES = ["James", "Maria", "Carlos", "Sarah", "Michael", "Emily", "David", "Jennifer", "Robert", "Lisa"];
+const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Moore"];
+const STREETS = ["Oak Ave", "Maple Dr", "Cedar Ln", "Pine St", "Elm Rd", "Birch Blvd", "Willow Way", "Spruce Ct"];
+const CITIES = ["Austin", "Dallas", "Houston", "San Antonio", "Fort Worth"];
+function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+function randStr(len) {
+    return Math.random().toString(36).substring(2, 2 + len).padEnd(len, "0");
+}
 function generateFakeLead() {
-    const source = faker_1.faker.helpers.arrayElement(AD_SOURCES);
-    const status = faker_1.faker.helpers.arrayElement(LEAD_STATUSES);
+    const source = pick(AD_SOURCES);
+    const status = pick(LEAD_STATUSES);
+    const firstName = pick(FIRST_NAMES);
+    const lastName = pick(LAST_NAMES);
+    const name = `${firstName} ${lastName}`;
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 999)}@example.com`;
     return {
-        meta_lead_id: `meta_${faker_1.faker.string.alphanumeric(10)}`,
+        meta_lead_id: `meta_${randStr(10)}`,
         agency_id: AGENCY_USER_ID,
         status,
-        name: faker_1.faker.person.fullName(),
-        email: faker_1.faker.internet.email().toLowerCase(),
-        phone: faker_1.faker.phone.number(),
-        address: faker_1.faker.location.streetAddress({ useFullAddress: true }),
-        form_id: faker_1.faker.helpers.arrayElement(FORM_VERSIONS),
+        name,
+        email,
+        phone: `+1512${Math.floor(Math.random() * 9000000) + 1000000}`,
+        address: `${Math.floor(Math.random() * 9000) + 100} ${pick(STREETS)}, ${pick(CITIES)}, TX`,
+        form_id: pick(FORM_VERSIONS),
         form_info: {
             source,
-            campaign: faker_1.faker.commerce.productName() + " Campaign",
-            ad_id: `ad_${faker_1.faker.string.alphanumeric(8)}`,
-            name: faker_1.faker.person.fullName(),
-            email: faker_1.faker.internet.email().toLowerCase(),
-            phone: faker_1.faker.phone.number(),
-            projectscope: faker_1.faker.helpers.arrayElement([projectscope]),
+            campaign: `Hardscape ${pick(["Summer", "Spring", "Fall"])} Campaign`,
+            ad_id: `ad_${randStr(8)}`,
+            name,
+            email,
+            phone: `+1512${Math.floor(Math.random() * 9000000) + 1000000}`,
+            projectscope: pick(projectscope),
         },
-        start_time_pref: faker_1.faker.helpers.arrayElement(TIME_PREFERENCES),
-        is_used: faker_1.faker.datatype.boolean(),
+        start_time_pref: pick(TIME_PREFERENCES),
+        is_used: Math.random() > 0.5,
     };
 }
 let LeadSeedService = LeadSeedService_1 = class LeadSeedService {
