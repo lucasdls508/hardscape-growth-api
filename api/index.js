@@ -70,6 +70,13 @@ async function getHandler() {
 }
 
 module.exports = async (req, res) => {
-  const h = await getHandler();
-  return h(req, res);
+  try {
+    const h = await getHandler();
+    return h(req, res);
+  } catch (err) {
+    console.error("[VERCEL INIT ERROR]", err.message, err.stack);
+    res.statusCode = 500;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ error: err.message, stack: err.stack?.split("\n").slice(0, 5) }));
+  }
 };
