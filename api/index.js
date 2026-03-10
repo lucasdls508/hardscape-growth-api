@@ -6,7 +6,17 @@ process.env.VERCEL = "1";
 const serverlessHttp = require("serverless-http");
 
 // --- Start initialization immediately at module load ---
-let initPromise = initApp();
+// CRITICAL: .catch() must be attached so Node.js 15+ doesn't treat the rejection
+// as "unhandled" and crash the process before the first request handler runs.
+let initPromise = initApp().catch(err => {
+  console.error("[VERCEL INIT FAILED]", err.message, err.stack);
+  // Return a minimal handler so requests get a proper JSON error instead of a process crash
+  return (req, res) => {
+    res.statusCode = 500;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ error: "Server initialization failed", message: err.message, stack: err.stack?.split("\n").slice(0, 8) }));
+  };
+});
 
 async function initApp() {
   const express = require("express");
