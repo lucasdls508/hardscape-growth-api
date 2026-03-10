@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install production deps from lockfile
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy pre-built dist and runtime files
 COPY dist/ ./dist/
