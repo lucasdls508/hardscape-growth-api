@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
+    }
+  ],
+  "env": {
+    "STAGE": "prod",
+    "NODE_ENV": "production"
+  }
+}
