@@ -1,14 +1,14 @@
 // Vercel serverless entry point for NestJS
-// Uses Express adapter (not Fastify) + serverless-http wrapper
-// BullMQ, WebSockets, and Cron are disabled in serverless mode via VERCEL env var
+// Key: initialization starts at MODULE LOAD time, not request time.
+// Vercel's 10s limit applies to request handling, not module initialization.
 process.env.VERCEL = "1";
 
 const serverlessHttp = require("serverless-http");
-let handler;
 
-async function getHandler() {
-  if (handler) return handler;
+// --- Start initialization immediately at module load ---
+let initPromise = initApp();
 
+async function initApp() {
   const express = require("express");
   const expressApp = express();
 
@@ -19,7 +19,6 @@ async function getHandler() {
   const { Reflector } = require("@nestjs/core");
   const compression = require("compression");
   const cookieParser = require("cookie-parser");
-  const helmet = require("helmet");
   const hpp = require("hpp");
   const { urlencoded } = require("express");
 
@@ -55,26 +54,24 @@ async function getHandler() {
 
   // Seed admin user (no-op if already exists)
   try {
-    const { SeederService } = require("../dist/src/seeder/seeder.service");
-    const seeder = app.get(SeederService);
+    const seeder = app.get(require("../dist/src/seeder/seeder.service").SeederService);
     await seeder.seedAdminUser().catch(() => {});
     await seeder.seedSettings().catch(() => {});
   } catch (e) {
     console.warn("Seeder not available:", e.message);
   }
 
-  handler = serverlessHttp(expressApp, {
-    binary: ["image/*"],
-  });
-  return handler;
+  console.log("[VERCEL] NestJS initialized");
+  return serverlessHttp(expressApp, { binary: ["image/*"] });
 }
 
+// --- Handle requests ---
 module.exports = async (req, res) => {
   try {
-    const h = await getHandler();
-    return h(req, res);
+    const handler = await initPromise;
+    return handler(req, res);
   } catch (err) {
-    console.error("[VERCEL INIT ERROR]", err.message, err.stack);
+    console.error("[VERCEL INIT ERROR]", err.message);
     res.statusCode = 500;
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({ error: err.message, stack: err.stack?.split("\n").slice(0, 5) }));
