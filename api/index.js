@@ -3,6 +3,15 @@
 // Vercel's 10s limit applies to request handling, not module initialization.
 process.env.VERCEL = "1";
 
+// Capture any process-level crashes so they appear in Vercel logs instead of
+// resulting in a silent FUNCTION_INVOCATION_FAILED with no log output.
+process.on("uncaughtException", (err) => {
+  console.error("[VERCEL uncaughtException]", err.message, err.stack);
+});
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[VERCEL unhandledRejection]", reason instanceof Error ? reason.stack : reason);
+});
+
 const serverlessHttp = require("serverless-http");
 
 // --- Start initialization immediately at module load ---
