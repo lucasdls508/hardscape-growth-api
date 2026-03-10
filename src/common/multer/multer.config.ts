@@ -8,7 +8,13 @@ import { extname } from "path";
 
 export const multerConfig = {
   storage: diskStorage({
-    destination: `public/uploads/${new Date().toISOString().split("T")[0].replace(/-/g, "/")}`,
+    destination: (req, file, callback) => {
+      // Use /tmp on serverless (Vercel); local disk otherwise
+      const base = process.env.VERCEL ? "/tmp" : "public";
+      const dir = `${base}/uploads/${new Date().toISOString().split("T")[0].replace(/-/g, "/")}`;
+      require("fs").mkdirSync(dir, { recursive: true });
+      callback(null, dir);
+    },
     filename: (req, file, callback) => {
       //  const date =
       console.log("ON MULTER", file);

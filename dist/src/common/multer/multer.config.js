@@ -12,7 +12,12 @@ const multer_1 = require("multer");
 const path_1 = require("path");
 exports.multerConfig = {
     storage: (0, multer_1.diskStorage)({
-        destination: `public/uploads/${new Date().toISOString().split("T")[0].replace(/-/g, "/")}`,
+        destination: (req, file, callback) => {
+            const base = process.env.VERCEL ? "/tmp" : "public";
+            const dir = `${base}/uploads/${new Date().toISOString().split("T")[0].replace(/-/g, "/")}`;
+            require("fs").mkdirSync(dir, { recursive: true });
+            callback(null, dir);
+        },
         filename: (req, file, callback) => {
             console.log("ON MULTER", file);
             const uniqueSuffix = Math.round(Math.random() * 1e9);
