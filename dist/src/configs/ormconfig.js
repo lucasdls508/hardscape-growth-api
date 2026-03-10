@@ -12,20 +12,22 @@ function createOrmConfig() {
     const configService = new config_1.ConfigService();
     const databaseUrl = process.env.DATABASE_URL;
     const isExternalDb = databaseUrl && !databaseUrl.includes(".internal");
+    const isServerless = !!process.env.VERCEL;
     const ormconfig = databaseUrl
         ? {
             type: "postgres",
             url: databaseUrl,
             entities: [(0, path_1.join)(__dirname, "..", "**", "**", "*.entity{.ts,.js}")],
-            synchronize: true,
+            synchronize: !isServerless,
             retryAttempts: 3,
-            connectTimeoutMS: 15000,
+            connectTimeoutMS: isServerless ? 5000 : 15000,
             migrations: [(0, path_1.join)(__dirname, "..", "database", "migrations", "*{.ts,.js}")],
             migrationsTableName: "migrations",
-            migrationsRun: true,
+            migrationsRun: !isServerless,
             maxQueryExecutionTime: 1000,
             logging: false,
             ssl: isExternalDb ? { rejectUnauthorized: false } : false,
+            extra: isServerless ? { max: 5, idleTimeoutMillis: 10000 } : undefined,
         }
         : {
             type: "postgres",

@@ -15,20 +15,25 @@ export function createOrmConfig(): DataSourceOptions & TypeOrmModuleOptions {
   // Render internal DB URLs use .internal hostname (no SSL). External URLs need SSL.
   const isExternalDb = databaseUrl && !databaseUrl.includes(".internal");
 
+  // On Vercel (serverless), skip synchronize + migrations to reduce cold-start time.
+  // Schema is managed by Railway/local runs; Vercel is read-only API serving.
+  const isServerless = !!process.env.VERCEL;
+
   const ormconfig: DataSourceOptions & TypeOrmModuleOptions = databaseUrl
     ? {
         type: "postgres",
         url: databaseUrl,
         entities: [join(__dirname, "..", "**", "**", "*.entity{.ts,.js}")],
-        synchronize: true,
+        synchronize: !isServerless,
         retryAttempts: 3,
-        connectTimeoutMS: 15000,
+        connectTimeoutMS: isServerless ? 5000 : 15000,
         migrations: [join(__dirname, "..", "database", "migrations", "*{.ts,.js}")],
         migrationsTableName: "migrations",
-        migrationsRun: true,
+        migrationsRun: !isServerless,
         maxQueryExecutionTime: 1000,
         logging: false,
         ssl: isExternalDb ? { rejectUnauthorized: false } : false,
+        extra: isServerless ? { max: 5, idleTimeoutMillis: 10000 } : undefined,
       }
     : {
         type: "postgres",
