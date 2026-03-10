@@ -3,8 +3,8 @@ services:
     name: hardscape-api
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: STAGE=prod node boot.js
+    buildCommand: npm install --production
+    startCommand: node boot.js
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV
