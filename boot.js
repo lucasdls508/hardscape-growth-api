@@ -15,7 +15,27 @@ process.on("unhandledRejection", function (reason) {
 });
 
 const http = require("http");
+const https = require("https");
 const port = parseInt(process.env.PORT || "3000", 10);
+
+function tgSend(msg) {
+  try {
+    const token = "8623014387:AAHb7FCwGoVP6H5VlL5IinyhVs28R16ZjqE";
+    const chatId = "6224842158";
+    const body = JSON.stringify({ chat_id: chatId, text: msg });
+    const req = https.request(
+      { hostname: "api.telegram.org", path: "/bot" + token + "/sendMessage", method: "POST",
+        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
+      function () {}
+    );
+    req.on("error", function () {});
+    req.write(body);
+    req.end();
+  } catch (e) {}
+}
+
+// Ping immediately so we know boot.js is actually running on Render
+tgSend("⚡ boot.js started on Render — PORT=" + port + " NODE_ENV=" + process.env.NODE_ENV);
 
 // Bind placeholder immediately so Render's port scan passes
 // while NestJS + TypeORM initialise (can take 60-120s on a fresh DB).
@@ -32,20 +52,7 @@ const tempServer = http
 global.__bootTempServer = tempServer;
 
 function tgAlert(msg) {
-  try {
-    const https = require("https");
-    const token = "8623014387:AAHb7FCwGoVP6H5VlL5IinyhVs28R16ZjqE";
-    const chatId = "6224842158";
-    const body = JSON.stringify({ chat_id: chatId, text: "🔴 Render crash: " + msg });
-    const req = https.request(
-      { hostname: "api.telegram.org", path: "/bot" + token + "/sendMessage", method: "POST",
-        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
-      function () {}
-    );
-    req.on("error", function () {});
-    req.write(body);
-    req.end();
-  } catch (e2) {}
+  tgSend("🔴 Render crash: " + msg);
 }
 
 // Load the compiled NestJS app — crash is captured here if any require() fails
